@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  # Servicio del Maestro de Spark
+  spark-master:
+    image: bitnami/spark:3.4.1
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+    ports:
+      - '8080:8080' # UI de Spark
+      - '7077:7077'
+
+  # Servicio del Trabajador de Spark
+  spark-worker:
+    image: bitnami/spark:3.4.1
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+    depends_on:
+      - spark-master
+
+  # Nuestro servicio de aplicación
+  app:
+    build: . # Construye la imagen usando el Dockerfile en la carpeta actual
+    depends_on:
+      - spark-master
+      - spark-worker
